@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="noticeDAO">
+
+	<insert id="insertNotice" parameterType="noticeDTO">
+	insert into notice(notice_number,notice_writer,notice_title,notice_content,notice_regdate,notice_fix)
+	values(0,#{notice_writer},#{notice_title},#{notice_content},NOW(),0)
+	</insert>
+	
+	<select id="countNotice" resultType="int">
+	select count(*)
+	from notice
+	<if test="keyword != null">
+	where notice_title like concat('%',#{keyword},'%')
+	</if>
+	</select>
+	
+	<select id="selectNotice" resultType="noticeDTO">
+	select * from notice
+	<if test="keyword != null">
+	where notice_title like concat('%',#{keyword},'%')
+	</if>
+	order by notice_number desc
+	limit #{start},#{count}
+	</select>
+	
+	<select id="selectNotice2" parameterType="util.PageTest" resultType="noticeDTO">
+	select * from notice
+	<if test="keyword != null">
+	where notice_title like CONCAT('%',#{keyword},'%')
+	</if>
+	order by notice_number desc
+	limit #{start},#{count}
+	</select>
+	
+	<!-- 
+	<select id="searchNotice" parameterType="util.PageTest" resultType="noticeDTO">
+	SELECT @rownum := @rownum + 1 AS notice_Rnum, notice_number, notice_title, notice_writer, notice_regdate, notice_readcount
+	FROM (SELECT @rownum := 0) r, notice
+	WHERE
+	<if test="type != null and keyword != null">
+	<foreach item="item" index="index" collection="typeArr" separator="OR">
+		${item} LIKE CONCAT('%',#{keyword},'%')
+	</foreach>
+	</if>
+	<if test="type == null or keyword == null">
+	1=1
+	</if>
+	ORDER BY notice_number DESC
+	LIMIT #{startRow}, #{pageSize}
+	</select>
+	 -->
+	
+	
+	<update id="readCnt" parameterType="int">
+	update notice set
+	notice_readcount=notice_readcount+1
+	where notice_number=#{noitce_number}
+	</update>
+	
+	<select id="oneNotice" parameterType="int" resultType="noticeDTO">
+	select * from
+	notice where notice_number=#{notice_number}
+	</select>
+	
+	<update id="editNotice" parameterType="noticeDTO">
+	update notice set
+	notice_title=#{notice_title},notice_content=#{notice_content}
+	where notice_number=#{notice_number}
+	</update>
+	
+	<delete id="deleteNotice" parameterType="int">	
+	delete from notice
+	where notice_number=#{notice_number}
+	</delete>
+	
+	<!-- 게시물 검색 페이징 -->
+	<select id="getListPaging" resultType="util.PageTest">
+	select * from (
+			select notice_number, notice_title, notice_writer, notice_regdate,notice_fix
+			from notice
+			<if test="keyword != null">
+			 where notice_title like CONCAT('%',#{keyword},'%')
+			</if>
+			order by notice_number desc) as T1
+		limit #{startRow},#{pageSize}
+	</select>
+	
+</mapper>
